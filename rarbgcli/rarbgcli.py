@@ -73,12 +73,14 @@ def solveCaptcha(threat_defence_url):
     from io import BytesIO
 
     def img2txt():
+        print("Trying img2txt")
         try:
             clk_here_button = driver.find_element_by_link_text("Click here")
             clk_here_button.click()
             time.sleep(10)
             WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "solve_string")))
         except Exception:
+            print("Exception during img2txt")
             pass
         finally:
             element = driver.find_elements_by_css_selector("img")[1]
@@ -91,6 +93,7 @@ def solveCaptcha(threat_defence_url):
             height = location["y"] + size["height"]
             im = Image.open(BytesIO(png))
             im = im.crop((int(x), int(y), int(width), int(height)))
+            print("returning img2txt")
             return pytesseract.image_to_string(im)
 
     options = Options()
@@ -103,7 +106,7 @@ def solveCaptcha(threat_defence_url):
     # import get_chrome_driver  # no longer needed since ChromeDriverManager exists
     # chromedriver_path = get_chrome_driver.main(PROGRAM_HOME)
     driver = webdriver.Chrome(
-        ChromeDriverManager(path=PROGRAM_HOME).install(), chrome_options=options, service_log_path=("NUL" if sys.platform == "win32" else "/dev/null")
+        ChromeDriverManager(path=PROGRAM_HOME).install(), options=options, service_log_path=("NUL" if sys.platform == "win32" else "/dev/null")
     )
     print("successfully loaded chrome driver")
 
@@ -146,6 +149,8 @@ def download_tesseract(chdir="."):
         os.remove(tesseract_zip)
     elif platform in ["linux", "linux2"]:
         os.system("sudo apt-get install tesseract-ocr")
+    elif platform == "posix":
+        os.system("brew install tesseract")
     else:
         raise Exception("Unsupported platform")
 
@@ -351,7 +356,7 @@ def get_args():
     parser.add_argument("--category", "-c", choices=CATEGORY2CODE.keys(), default="")
     parser.add_argument("--limit", "-l", type=float, default="inf", help="Limit number of torrent magnet links")
     parser.add_argument("--domain", default="rarbgunblocked.org", help="Domain to search, you could put an alternative mirror domain here")
-    parser.add_argument("--order", "-r", choices=orderkeys, default="", help="Order results (before query) by this key. empty string means no sort")
+    parser.add_argument("--order", "-r", choices=orderkeys, default="data", help="Order results (before query) by this key. empty string means no sort")
     parser.add_argument("--descending", action="store_true", help="Order in descending order (only available for --order)")
     parser.add_argument("--interactive", "-i", action="store_true", default=None, help="Force interactive mode, show interctive menu of torrents")
     parser.add_argument(
